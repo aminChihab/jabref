@@ -6,6 +6,9 @@ import org.jabref.logic.bibtex.LatexFieldFormatterPreferences;
 import org.jabref.logic.importer.FetcherException;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.fetcher.SpringerFetcher;
+import org.jabref.logic.search.DatabaseSearcher;
+import org.jabref.logic.search.SearchQuery;
+import org.jabref.model.database.BibDatabase;
 import org.jabref.model.database.BibDatabaseMode;
 import org.jabref.model.entry.BibEntry;
 import org.jabref.model.entry.BibtexEntryTypes;
@@ -87,5 +90,65 @@ public class AsvUnitTest
             assertNotNull(be.getField(FieldName.AUTHOR));
             assertNotNull(be.getField(FieldName.JOURNAL));
         }
+    }
+
+    @AsvTest
+    @Test
+    public void testGetLocalResults()
+    {
+        BibDatabase bdb = new BibDatabase();
+
+        BibEntry entry1 = new BibEntry(BibtexEntryTypes.ARTICLE);
+        entry1.setField(FieldName.TITLE, "An Incredibly Interesting Article");
+        entry1.setField(FieldName.AUTHOR, "Mr. Know It All");
+        entry1.setField(FieldName.JOURNAL, "International Journal of Interesting Stuff");
+
+        BibEntry entry2 = new BibEntry(BibtexEntryTypes.ARTICLE);
+        entry2.setField(FieldName.TITLE, "An Article About Software");
+        entry2.setField(FieldName.AUTHOR, "John Doe");
+        entry2.setField(FieldName.JOURNAL, "The Software Journal");
+
+        BibEntry entry3 = new BibEntry(BibtexEntryTypes.ARTICLE);
+        entry3.setField(FieldName.TITLE, "An Article About Cooking");
+        entry3.setField(FieldName.AUTHOR, "Jane Doe");
+        entry3.setField(FieldName.JOURNAL, "Cooking International");
+
+        BibEntry entry4 = new BibEntry(BibtexEntryTypes.ARTICLE);
+        entry4.setField(FieldName.TITLE, "Global Warming Explained");
+        entry4.setField(FieldName.AUTHOR, "Donald J. Trump");
+        entry4.setField(FieldName.JOURNAL, "International Journal for Environmental Research");
+
+        // My brother wrote this one, no idea what it's about but sounds cool
+        BibEntry entry5 = new BibEntry(BibtexEntryTypes.ARTICLE);
+        entry5.setField(FieldName.TITLE, "CCMV-Based Enzymatic Nanoreactors");
+        entry5.setField(FieldName.AUTHOR, "Ruiter, Mark V. and Putri, Rindia M. and Cornelissen, Jeroen J. L. M.");
+        entry5.setField(FieldName.JOURNAL, "Virus-Derived Nanoparticles for Advanced Technologies");
+
+        // Insert the entries into the library
+        bdb.insertEntry(entry1);
+        bdb.insertEntry(entry2);
+        bdb.insertEntry(entry3);
+        bdb.insertEntry(entry4);
+        bdb.insertEntry(entry5);
+
+        // Create a query that should result in entry2's title
+        SearchQuery q = new SearchQuery("software", false, false);
+        // Get the results
+        List<BibEntry> results = new DatabaseSearcher(q, bdb).getMatches();
+        // A result should be found
+        assertTrue(results.size() > 0);
+        // The result should be entry2, which is the only one that matches 'software'
+        assertEquals(entry2, results.iterator().next());
+
+        // Do a few more, searching by journal and author
+        q = new SearchQuery("Ruiter Mark V.", false, false);
+        results = new DatabaseSearcher(q, bdb).getMatches();
+        assertTrue(results.size() > 0);
+        assertEquals(entry5, results.iterator().next());
+
+        q = new SearchQuery("Environmental", false, false);
+        results = new DatabaseSearcher(q, bdb).getMatches();
+        assertTrue(results.size() > 0);
+        assertEquals(entry4, results.iterator().next());
     }
 }
