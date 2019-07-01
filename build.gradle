@@ -12,12 +12,6 @@ buildscript {
         maven {
             url 'https://oss.sonatype.org/content/groups/public'
         }
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath "net.ltgt.gradle:gradle-errorprone-plugin:0.8.1"
     }
 }
 
@@ -29,7 +23,6 @@ plugins {
     id 'me.champeau.gradle.jmh' version '0.4.8'
     id 'com.github.ben-manes.versions' version '0.21.0'
     id "org.sonarqube" version "2.7"
-    id "net.ltgt.errorprone" version "0.8.1"
 }
 
 // use the gradle build scan feature: https://scans.gradle.com/get-started
@@ -46,7 +39,6 @@ apply plugin: 'checkstyle'
 apply plugin: org.jabref.build.antlr.AntlrPlugin
 apply plugin: org.jabref.build.xjc.XjcPlugin
 apply plugin: org.jabref.build.localization.LocalizationPlugin
-apply plugin: "net.ltgt.errorprone"
 
 apply from: 'eclipse.gradle'
 
