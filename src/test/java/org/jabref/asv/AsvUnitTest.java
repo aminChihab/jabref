@@ -13,6 +13,10 @@ import org.jabref.model.database.BibDatabaseMode;
 import org.jabref.model.entry.BibEntry;
 import org.jabref.model.entry.BibtexEntryTypes;
 import org.jabref.model.entry.FieldName;
+import org.jabref.model.groups.AllEntriesGroup;
+import org.jabref.model.groups.AutomaticKeywordGroup;
+import org.jabref.model.groups.ExplicitGroup;
+import org.jabref.model.groups.GroupHierarchyType;
 import org.jabref.model.util.DummyFileUpdateMonitor;
 import org.jabref.model.util.FileUpdateMonitor;
 import org.jabref.testutils.category.AsvTest;
@@ -150,5 +154,22 @@ public class AsvUnitTest
         results = new DatabaseSearcher(q, bdb).getMatches();
         assertTrue(results.size() > 0);
         assertEquals(entry4, results.iterator().next());
+    }
+
+    @AsvTest
+    @Test
+    public void testGrouping()
+    {
+        BibEntry entry1 = new BibEntry(BibtexEntryTypes.ARTICLE);
+        entry1.setField(FieldName.TITLE, "An Incredibly Interesting Article");
+        entry1.setField(FieldName.AUTHOR, "Mr. Know It All");
+        entry1.setField(FieldName.JOURNAL, "International Journal of Interesting Stuff");
+
+        // create a basic group
+        ExplicitGroup group = new ExplicitGroup("My group", GroupHierarchyType.INDEPENDENT, ",");
+        group.add(entry1);
+
+        // Check if the group does indeed contain the entry
+        assertTrue(group.contains(entry1));
     }
 }

@@ -2,6 +2,7 @@ package org.jabref.logic.importer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -55,20 +56,27 @@ public interface SearchBasedParserFetcher extends SearchBasedFetcher {
             return Collections.emptyList();
         }
 
-        try (InputStream stream = new URLDownload(getURLForQuery(query)).asInputStream()) {
+        try {
+            URL url = getURLForQuery(query);
+            HttpURLConnection con = (HttpURLConnection)url.openConnection();
+            con.setRequestMethod("GET");
+            con.connect();
+
+            if (con.getResponseCode() == 401 || con.getResponseCode() == 403) {
+                throw new FetcherException("You are not authorized to access this resource");
+            }
+            InputStream stream = con.getInputStream();
             List<BibEntry> fetchedEntries = getParser().parseEntries(stream);
 
-            // Post-cleanup
             fetchedEntries.forEach(this::doPostCleanup);
-
             return fetchedEntries;
+
         } catch (URISyntaxException e) {
             throw new FetcherException("Search URI is malformed", e);
         } catch (IOException e) {
-            // TODO: Catch HTTP Response 401/403 errors and report that user has no rights to access resource
-            throw new FetcherException("A network error occurred", e);
+            throw new FetcherException("A network error occured");
         } catch (ParseException e) {
-            throw new FetcherException("An internal parser error occurred", e);
+            throw new FetcherException("Fetched data could not be parsed to entries");
         }
     }
 }
